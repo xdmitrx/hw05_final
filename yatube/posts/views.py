@@ -1,4 +1,3 @@
-from multiprocessing.reduction import DupFd
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_page
@@ -9,8 +8,8 @@ from .utils import get_page_context
 from . import constants
 
 
-@cache_page(constants.CASH_TIME_FOR_INDEX_PAGE_IN_SECONDS,
-            key_prefix='index')
+# # @cache_page(constants.CASH_TIME_FOR_INDEX_PAGE_IN_SECONDS,
+#             key_prefix='index')
 def index(request):
     """Выводит шаблон главной страницы."""
     post_list = Post.objects.select_related('author', 'group')

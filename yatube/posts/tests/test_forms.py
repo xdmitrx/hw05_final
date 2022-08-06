@@ -53,7 +53,6 @@ class PostFormTest(TestCase):
         form_data = {
             'text': 'test post',
             'group': self.group_1.pk,
-            'image': uploaded_img,
         }
         response = self.authorized_client.post(
             reverse('posts:post_create'),
@@ -67,9 +66,7 @@ class PostFormTest(TestCase):
         self.assertEqual(Post.objects.count(), posts_count + 1)
         last_post_data = ((last_post.text, form_data.get('text')),
                           (last_post.group.title, self.group_1.title),
-                          (last_post.author, self.user),
-                          (last_post.image, self.image)
-                          )
+                          (last_post.author, self.user))
         for value, expected in last_post_data:
             with self.subTest(value=value):
                 self.assertEqual(value, expected)
@@ -113,18 +110,17 @@ class CommentFormTest(TestCase):
         )
 
     def setUp(self):
-        self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
+        self.guest = Client()
 
     def test_authorized_client_add_comment(self):
-        """Публикация коммента авторизованным пользователем."""
+        """Публикация коммента не авторизованным пользователем."""
         comments_count = Comment.objects.count()
         form_data = {
             'author': self.user,
             'post': self.post,
             'text': 'test text'
         }
-        response = self.authorized_client.post(
+        response = self.guest.post(
             reverse('posts:add_comment',
                     kwargs={'post_id': self.post.id}),
             data=form_data,

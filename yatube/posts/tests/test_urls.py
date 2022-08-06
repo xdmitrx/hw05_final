@@ -9,7 +9,7 @@ from ..models import Group, Post
 User = get_user_model()
 
 
-class TaskURLTests(TestCase):
+class PostsURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -31,7 +31,7 @@ class TaskURLTests(TestCase):
         self.authorized_client2 = Client()
         self.authorized_client2.force_login(self.user2)
 
-    def test_urls_uses_correct_template(self):
+    def test_urls_use_correct_template(self):
         """Проверит, что страницы используют правильные шаблоны."""
         templates_url_names = {
             '/': 'posts/index.html',
@@ -40,12 +40,12 @@ class TaskURLTests(TestCase):
             f'/posts/{self.post.id}/': 'posts/post_detail.html',
             '/create/': 'posts/create_post.html',
             f'/posts/{self.post.id}/edit/': 'posts/create_post.html',
-            f'posts/{self.post.id}/comment/': 'posts/includes/comment.html',
-        }
+        }       
         for address, template in templates_url_names.items():
             with self.subTest(address=address):
                 response = self.authorized_client2.get(address)
                 self.assertTemplateUsed(response, template)
+        
 
     def test_index_page_not_login_user(self):
         """Главная страница доступна гостю."""

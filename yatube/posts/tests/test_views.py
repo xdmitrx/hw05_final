@@ -9,7 +9,7 @@ from django.conf import settings
 from django import forms
 
 from ..import constants
-from ..models import Group, Post
+from ..models import Group, Post, Follow
 
 from ..utils import uploaded_img
 
@@ -44,7 +44,7 @@ class PostsViewTests(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
-    def test_pages_uses_correct_template(self):
+    def test_pages_use_correct_template(self):
         """Проверка шаблона при вызове views через пространство имен."""
         reverse_names_templates = {
             reverse('posts:index'): 'posts/index.html',
@@ -61,6 +61,7 @@ class PostsViewTests(TestCase):
             reverse('posts:post_detail',
                     kwargs={'post_id': f'{self.post.id}'}):
             'posts/post_detail.html',
+            reverse('posts:follow_index'): 'posts/follow.html',
         }
         for reverse_name, template in reverse_names_templates.items():
             with self.subTest(reverse_name=reverse_name):
@@ -87,7 +88,6 @@ class PostsPagesTest(TestCase):
             author=cls.user,
             text='test post',
             group=cls.group,
-            image=uploaded_img,
         )
 
     def setUp(self):
@@ -102,7 +102,7 @@ class PostsPagesTest(TestCase):
         self.assertEqual(first_object.author, self.post.author)
         self.assertEqual(first_object.group, self.post.group)
         self.assertEqual(first_object.id, self.post.id)
-        self.assertEqual(response.context['post'].image, self.post.image)
+        self.assertEqual(first_object.image, self.post.image)
 
     def test_group_show_correct_context(self):
         """Шаблон group_list сформирован с правильным контекстом."""
@@ -295,3 +295,73 @@ class PaginatorViewsTest(TestCase):
         self.assertEqual(len(response.context['page_obj']),
                             (constants.POSTS_PER_SECOND_PAGE),
                          )
+
+class SubscribeViewsTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user_author = User.objects.create(username='Автор')
+        cls.user_follower = User.objects.create(username='Подписчик')
+        cls.user_no_follow = User.objects.create(username='Не подписчик')
+        cls.post = Post.objects.create(
+            author=cls.user_author,
+            text='test author post',
+        )
+        cls.post_no_follow = Post.objects.create(
+            author=cls.user_no_follow,
+            text='test user post',
+        )
+
+    def setUp(self):
+        self.guest = Client()
+        self.auth_follower = Client()
+        self.auth_follower.force_login(self.user_follower)
+        self.auth_no_follow = Client()
+        self.auth_no_follow.force_login(self.user_no_follow)
+
+
+    def test_guest_cant_subscribe(self):
+        """Не авторизованный пользователь не может подписаться на автора."""
+        follows_count = Follow.objects.count()
+        self.guest.get(
+            reverse('posts:profile_follow',
+                    kwargs={'username': self.user_author.username})
+        )
+        self.assertEqual(Follow.objects.count(), follows_count)
+
+    def test_user_can_subscribe(self):
+        """Авторизованный пользователь может подписаться на автора."""
+        self.auth_follower.get(
+            reverse('posts:profile_follow',
+                    kwargs={'username': self.user_author.username})
+        )
+        self.assertTrue(Follow.objects.filter(user=self.user_follower,
+                                 author=self.user_author))
+
+    def test_user_can_unsubscribe(self):
+        """Авторизованный пользователь может отписаться от автора."""
+        Follow.objects.create(user=self.user_follower,
+                              author=self.user_author)
+        self.auth_follower.get(
+            reverse('posts:profile_unfollow',
+                    kwargs={'username': self.user_author.username})
+        )
+        self.assertFalse(Follow.objects.filter(user=self.user_follower,
+                                 author=self.user_author))
+
+    def test_user_see_who_follows(self):
+        """Новый пост доступен для просмотра подписчикам."""
+        Follow.objects.create(user=self.user_follower, author=self.user_author)
+        response_follower = self.auth_follower.get(
+            reverse('posts:follow_index')
+        )
+        self.assertEqual(response_follower.context['page_obj'][0].text,
+                         self.post.text)
+
+    def test_user_dont_see_who_not_follows(self):
+        """Новый пост не доступен для просмотра тем, кто не подписан."""
+        Follow.objects.create(user=self.user_follower, author=self.user_author)
+        response_no_follow_user = self.auth_no_follow.get(
+            reverse('posts:follow_index')
+        )
+        self.assertFalse(response_no_follow_user.context['page_obj'])
