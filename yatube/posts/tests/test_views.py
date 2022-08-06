@@ -296,6 +296,7 @@ class PaginatorViewsTest(TestCase):
                             (constants.POSTS_PER_SECOND_PAGE),
                          )
 
+
 class SubscribeViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -319,7 +320,6 @@ class SubscribeViewsTest(TestCase):
         self.auth_no_follow = Client()
         self.auth_no_follow.force_login(self.user_no_follow)
 
-
     def test_guest_cant_subscribe(self):
         """Не авторизованный пользователь не может подписаться на автора."""
         follows_count = Follow.objects.count()
@@ -336,7 +336,7 @@ class SubscribeViewsTest(TestCase):
                     kwargs={'username': self.user_author.username})
         )
         self.assertTrue(Follow.objects.filter(user=self.user_follower,
-                                 author=self.user_author))
+                                              author=self.user_author))
 
     def test_user_can_unsubscribe(self):
         """Авторизованный пользователь может отписаться от автора."""
@@ -347,7 +347,7 @@ class SubscribeViewsTest(TestCase):
                     kwargs={'username': self.user_author.username})
         )
         self.assertFalse(Follow.objects.filter(user=self.user_follower,
-                                 author=self.user_author))
+                                               author=self.user_author))
 
     def test_user_see_who_follows(self):
         """Новый пост доступен для просмотра подписчикам."""
