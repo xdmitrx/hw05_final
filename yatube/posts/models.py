@@ -73,6 +73,7 @@ class Comment(models.Model):
         """Строковое представление объекта."""
         return self.text[:constants.SYMBOLS_IN_SELF_TEXT]
 
+
 class Follow(models.Model):
     """Создание модели Follow."""
 
@@ -80,9 +81,9 @@ class Follow(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='follower'
-        )
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='following'
-        )
+    )
