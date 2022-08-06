@@ -26,6 +26,8 @@ urlpatterns = [
     path('', include('posts.urls', namespace='posts')),
 ]
 handler404 = 'core.views.page_not_found'
+handler403 = 'core.views.permission_denied'
+handler500 = 'core.views.server_error'
 
 if settings.DEBUG:
     urlpatterns += static(
