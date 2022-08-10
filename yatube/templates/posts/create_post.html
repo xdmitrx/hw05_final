@@ -2,7 +2,7 @@
 
 {% block title%}
   <title>
-    {% if post %}
+    {% if post_is_edit %}
       Редактировать пост
     {% else %}
       Новый пост
@@ -17,7 +17,7 @@
       <div class="col-md-8 p-5">
         <div class="card">
           <div class="card-header">
-            {% if post %}
+            {% if post_is_edit %}
               Редактировать пост
             {% else %}
               Новый пост
@@ -25,15 +25,11 @@
           </div>
           <div class="card-body">  
             <form method="post" enctype="multipart/form-data">
-              {% if action_url %} 
-                action="{% url 'posts:post_create' post.create %}"
-                action="{% url 'posts:post_edit' post.id.edit %}"
-              {% endif %}> 
               {% csrf_token %}
               {% include 'posts/includes/form.html' %}
               <div class="col-md-6 offset-md-4"> 
                 <button type="submit" class="btn btn-primary">
-                  {% if post %}
+                  {% if post_is_edit %}
                     Сохранить
                   {% else %}
                     Добавить
