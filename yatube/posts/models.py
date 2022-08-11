@@ -39,7 +39,7 @@ class Post(models.Model):
 
     def __str__(self):
         """Строковое представление объекта."""
-        return self.text[:constants.SYMBOLS_IN_SELF_TEXT]
+        return self.text[:constants.SYMBOLS_IN_STR]
 
 
 class Group(models.Model):

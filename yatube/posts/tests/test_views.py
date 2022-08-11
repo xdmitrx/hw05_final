@@ -359,15 +359,9 @@ class SubscribeViewsTest(TestCase):
     def test_user_can_subscribe(self):
         """Авторизованный пользователь может подписаться на автора."""
         follows_count = Follow.objects.count()
-        form_data = {
-            'author': self.user_no_follow,
-            'text': 'test author post',
-        }
         self.auth_follower.get(
             reverse('posts:profile_follow',
-                    kwargs={'username': self.user_author.username}),
-            data=form_data,
-            follow=True
+                    kwargs={'username': self.user_author.username})
         )
         self.assertEqual(Follow.objects.count(), follows_count + 1)
         self.assertTrue(
